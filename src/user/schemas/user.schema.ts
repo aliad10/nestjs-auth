@@ -1,11 +1,10 @@
-import { Prop, Schema } from "@nestjs/mongoose";
+import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { Document } from "mongoose";
+
+export type UserDocument = User & Document;
 
 @Schema()
-export class User {
-  toLower(email: string): string {
-    return email.toLowerCase();
-  }
-
+export class User extends Document {
   @Prop({ type: String, unique: true, isRequired: true, index: 1 })
   username;
 
@@ -27,6 +26,17 @@ export class User {
   @Prop({ type: Date, default: Date.now })
   updatedAt;
 
-  @Prop({})
+  @Prop({
+    type: String,
+    validate: [
+      (email) => {
+        var re = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+        return re.test(email);
+      },
+      "Please fill a valid email address",
+    ],
+  })
   email;
 }
+
+export const UserSchema = SchemaFactory.createForClass(User);
