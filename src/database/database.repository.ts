@@ -1,4 +1,4 @@
-import { Model, Document, FilterQuery } from "mongoose";
+import { Model, Document, FilterQuery, UpdateQuery } from "mongoose";
 export abstract class EntityRepository<T extends Document> {
   constructor(protected readonly entityModel: Model<T>) {}
 
@@ -21,7 +21,7 @@ export abstract class EntityRepository<T extends Document> {
   }
   async findOneAndUpdate(
     entityFilterQuery: FilterQuery<T>,
-    entityData: unknown
+    entityData: UpdateQuery<unknown>
   ): Promise<T> {
     return await this.entityModel.findOneAndUpdate(
       entityFilterQuery,
