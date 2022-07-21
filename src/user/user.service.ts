@@ -6,10 +6,17 @@ import { UserRepository } from "./user.repository";
 export class UserService {
   constructor(private userRepository: UserRepository) {}
 
-  create(user: CreateUserDto) {
-    return this.userRepository.create({ ...user });
+  async create(user: CreateUserDto) {
+    return await this.userRepository.create({ ...user });
   }
   async findUser(username: string): Promise<User> {
     return await this.userRepository.findOne({ username });
+  }
+
+  async findUserById(userId: string) {
+    return await this.userRepository.findOne({ _id: userId });
+  }
+  async updateUserById(userId: string, data: any) {
+    return this.userRepository.findOneAndUpdate({ _id: userId }, data);
   }
 }

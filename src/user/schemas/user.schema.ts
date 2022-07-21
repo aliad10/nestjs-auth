@@ -14,6 +14,9 @@ export class User extends Document {
   @Prop({ type: String, unique: true, isRequired: true, immutable: true })
   phoneNumber;
 
+  @Prop({ type: String, default: "" })
+  hashedRt;
+
   @Prop({ type: String })
   firstName;
 
