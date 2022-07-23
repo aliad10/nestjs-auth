@@ -11,7 +11,7 @@ export class Verification extends Document {
   @Prop({ type: String, isRequired: true })
   username;
 
-  @Prop({ type: Date, default: Date.now() + 120 })
+  @Prop({ type: Date, default: new Date(Date.now() + 120000) })
   expireAt;
 }
 

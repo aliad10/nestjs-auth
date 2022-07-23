@@ -6,7 +6,6 @@ import { ConfigService } from "@nestjs/config";
 import { UserService } from "src/user/user.service";
 import { LoginDto } from "./dtos";
 import { JwtService } from "@nestjs/jwt";
-
 import { MailerService } from "@nestjs-modules/mailer";
 import { VerificationRepository } from "./auth.repository";
 @Injectable()
@@ -52,7 +51,27 @@ export class AuthService {
 
     await this.updateRtHash(user._id, tokens.refresh_token);
 
-    await this.authRepo.create({ username: user.username, code: "1234" });
+    const verificationCodes = await this.authRepo.find({
+      username: user.username,
+      expireAt: { $gt: new Date() },
+    });
+
+    console.log("now", new Date());
+    console.log(verificationCodes);
+
+    if (verificationCodes.length > 0) {
+      throw new ForbiddenException("email sended to you");
+    }
+
+    await this.authRepo.deleteMany({
+      username: user.username,
+      expireAt: { $lt: new Date() },
+    });
+
+    await this.authRepo.create({
+      username: user.username,
+      code: this.genRandomToken(),
+    });
 
     return "please verify your self";
   }
@@ -132,5 +151,9 @@ export class AuthService {
       text: "hello",
       html: "<b> hello world? </b>",
     });
+  }
+  //return 6 digit random token
+  genRandomToken() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
   }
 }
