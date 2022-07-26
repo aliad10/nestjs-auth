@@ -19,12 +19,7 @@ var get_cookies = function (request) {
 export class AtStrategy extends PassportStrategy(Strategy, "jwt") {
   constructor(private configService: ConfigService) {
     super({
-      jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request) => {
-          console.log("ssss", get_cookies(req)["auth-token"]);
-          return get_cookies(req)["auth-token"];
-        },
-      ]),
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>("JWT_SECRET"),
     });

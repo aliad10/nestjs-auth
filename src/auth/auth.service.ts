@@ -3,7 +3,7 @@ import { CreateUserDto } from "./../user/dtos";
 import * as bcrypt from "bcryptjs";
 import * as ESU from "eth-sig-util";
 import { ConfigService } from "@nestjs/config";
-import { UserService } from "src/user/user.service";
+import { UserService } from "./../../src/user/user.service";
 import { LoginDto } from "./dtos";
 import { JwtService } from "@nestjs/jwt";
 import { MailerService } from "@nestjs-modules/mailer";
@@ -17,7 +17,7 @@ export class AuthService {
     private userService: UserService,
     private jwtService: JwtService,
     private mailerService: MailerService,
-    private authRepo: VerificationRepository
+    private authRepo: VerificationRepository,
   ) {}
 
   // async signup(dto: CreateUserDto) {

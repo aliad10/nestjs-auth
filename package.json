@@ -36,6 +36,7 @@
     "cookie-parser": "^1.4.6",
     "csurf": "^1.11.0",
     "eth-sig-util": "^3.0.1",
+    "mongodb-memory-server": "^8.8.0",
     "mongoose": "^6.4.4",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
