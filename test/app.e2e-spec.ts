@@ -3,12 +3,15 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { AppModule } from "./../src/app.module";
 import { Connection, connect } from "mongoose";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import Web3 from "web3";
+
 // import { spec } from "pactum";
 
 describe("App e2e", () => {
   let app: INestApplication;
   let mongoConnection: Connection;
   let config: ConfigService;
+  let web3: Web3;
 
   beforeAll(async () => {
     const moduleRef: TestingModule = await Test.createTestingModule({
@@ -17,6 +20,14 @@ describe("App e2e", () => {
     }).compile();
 
     config = moduleRef.get<ConfigService>(ConfigService);
+
+    web3 = new Web3(
+      `https://rinkeby.infura.io/v3/${config.get("INFURA_PROJECT_ID")}`,
+    );
+
+    let account = await web3.eth.accounts.create();
+
+    console.log("account", account);
 
     mongoConnection = (await connect(config.get("MONGO_TEST_CONNECTION")))
       .connection;
