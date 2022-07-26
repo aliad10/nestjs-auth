@@ -4,8 +4,7 @@ import { AppModule } from "./../src/app.module";
 import { Connection, connect } from "mongoose";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import Web3 from "web3";
-
-// import { spec } from "pactum";
+import { spec } from "pactum";
 
 describe("App e2e", () => {
   let app: INestApplication;
@@ -24,10 +23,6 @@ describe("App e2e", () => {
     web3 = new Web3(
       `https://rinkeby.infura.io/v3/${config.get("INFURA_PROJECT_ID")}`,
     );
-
-    let account = await web3.eth.accounts.create();
-
-    console.log("account", account);
 
     mongoConnection = (await connect(config.get("MONGO_TEST_CONNECTION")))
       .connection;
@@ -58,7 +53,15 @@ describe("App e2e", () => {
     }
   });
 
-  it("test", async () => {
-    return expect(1).toEqual(1);
+  it("get nonce", async () => {
+    //-----create account
+
+    let account = await web3.eth.accounts.create();
+
+    let test = await spec().get(
+      `http://localhost:3333/auth/nonce/${account.address}`,
+    );
+
+    console.log(test);
   });
 });
