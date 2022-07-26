@@ -47,7 +47,7 @@ describe("App e2e", () => {
     }
   });
 
-  it("create user", async () => {
+  it("test", async () => {
     return expect(1).toEqual(1);
   });
 });
