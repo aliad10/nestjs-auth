@@ -8,7 +8,7 @@ import { LoginDto } from "./dtos";
 import { JwtService } from "@nestjs/jwt";
 import { MailerService } from "@nestjs-modules/mailer";
 import { VerificationRepository } from "./auth.repository";
-
+import { Messages } from "./../common/constants";
 import { getRandomNonce, checkPublicKey } from "./../common/helpers";
 @Injectable()
 export class AuthService {
@@ -115,17 +115,16 @@ export class AuthService {
   // }
 
   async getNonce(wallet: string) {
-    // check valid wallet address
-
-    console.log("checkPublicKey(wallet) = ", checkPublicKey(wallet));
-
     if (!checkPublicKey(wallet)) throw new ForbiddenException("invalid wallet");
     let user = await this.userService.findUserByWallet(wallet);
 
     const nonce = getRandomNonce();
 
     if (user) {
-      return { nonce: user.nonce, userId: user._id };
+      return {
+        message: Messages.SIGN_MESSAGE + user.nonce.toString(),
+        userId: user._id,
+      };
     }
 
     const newUser = await this.userService.create({
@@ -133,37 +132,28 @@ export class AuthService {
       walletAddress: wallet,
     });
 
-    return { nonce: newUser.nonce, userId: newUser._id };
+    return {
+      message: Messages.SIGN_MESSAGE + newUser.nonce.toString(),
+      userId: newUser._id,
+    };
   }
 
-  async loginWithWallet(walletAddress: string) {
+  async loginWithWallet(walletAddress: string, signature: string) {
     if (!checkPublicKey(walletAddress))
       throw new ForbiddenException("invalid wallet");
+
     const user = await this.userService.findUserByWallet(walletAddress);
     if (!user) throw new ForbiddenException("user not exist");
 
-    const signature = {
-      address: "0x4111d150e622d079dea00f25f130fd733f1e7180",
-      msg: "0x37383838",
-      sig: "01479e1cceddaa45bf5543aa77c972f0913d41d51105a4d3c6ca78fc5f1d0a1d018e72d315251273add93e8d1a201792d4eaff5a23d151b8378d3455f4e042191c",
-      version: "3",
-      signer: "MEW",
-    };
-
-    const exampleMessage = "Example `personal_sign` message";
-    const msg = `0x${Buffer.from(exampleMessage, "utf8").toString("hex")}`;
-    const sign =
-      "0x1df72e6afe7311284d7680f852928a80a4d8557baf41e01e318c65c09bb13de737e854caffe704e752bbf064149c775ca11523cb65a8d14195c3db2d6d5687c21b";
-    const recoveredAddr = ESU.recoverPersonalSignature({
+    const message = Messages.SIGN_MESSAGE + user.nonce.toString();
+    const msg = `0x${Buffer.from(message, "utf8").toString("hex")}`;
+    const recoveredAddress = ESU.recoverPersonalSignature({
       data: msg,
-      sig: sign,
+      sig: signature,
     });
 
-    console.log("ddddd", recoveredAddr);
-    const ok = true;
-    if (!ok) throw new ForbiddenException("invalid credentials");
-
-    //change users nonce
+    if (recoveredAddress.toLowerCase() !== walletAddress.toLowerCase())
+      throw new ForbiddenException("invalid credentials");
 
     const nonce: number = getRandomNonce();
 
