@@ -6,7 +6,7 @@ import { ConfigService } from "@nestjs/config";
 import { UserService } from "./../../src/user/user.service";
 import { LoginDto } from "./dtos";
 import { JwtService } from "@nestjs/jwt";
-import { MailerService } from "@nestjs-modules/mailer";
+
 import { VerificationRepository } from "./auth.repository";
 import { Messages } from "./../common/constants";
 import { getRandomNonce, checkPublicKey } from "./../common/helpers";
@@ -16,8 +16,7 @@ export class AuthService {
     private configService: ConfigService,
     private userService: UserService,
     private jwtService: JwtService,
-    private mailerService: MailerService,
-    private authRepo: VerificationRepository,
+    private authRepo: VerificationRepository
   ) {}
 
   // async signup(dto: CreateUserDto) {
@@ -194,25 +193,6 @@ export class AuthService {
     await this.userService.updateUserById(userId, { hashedRt: hash });
   }
 
-  async sendConfirmationEmail(email: string, fullName: string, code: string) {
-    await this.mailerService.sendMail({
-      to: email,
-      subject: "Welcome to Nice App",
-      template: "cofirm",
-      context: {
-        fullName,
-        code,
-      },
-    });
-  }
-  async sendConfirmedEmail(email: string, fullName: string) {
-    return await this.mailerService.sendMail({
-      to: email,
-      subject: "you are confirmed",
-      text: "hello",
-      html: "<b> hello world? </b>",
-    });
-  }
   //return 6 digit random token
   genRandomToken() {
     return Math.floor(100000 + Math.random() * 900000).toString();
