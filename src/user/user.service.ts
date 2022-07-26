@@ -13,6 +13,10 @@ export class UserService {
     return await this.userRepository.findOne({ username });
   }
 
+  async findUserByWallet(walletAddress: string) {
+    return await this.userRepository.findOne({ walletAddress });
+  }
+
   async findUserById(userId: string) {
     return await this.userRepository.findOne({ _id: userId });
   }
