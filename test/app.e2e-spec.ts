@@ -91,7 +91,7 @@ describe("App e2e", () => {
     config = moduleRef.get<ConfigService>(ConfigService);
 
     web3 = new Web3(
-      `https://rinkeby.infura.io/v3/${config.get("INFURA_PROJECT_ID")}`
+      `https://rinkeby.infura.io/v3/${config.get("INFURA_PROJECT_ID")}`,
     );
 
     mongoConnection = (await connect(config.get("MONGO_TEST_CONNECTION")))
@@ -104,7 +104,7 @@ describe("App e2e", () => {
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
-      })
+      }),
     );
 
     await app.init();
@@ -112,25 +112,41 @@ describe("App e2e", () => {
   });
 
   afterAll(async () => {
-    // await mongoConnection.dropDatabase();
+    await mongoConnection.dropDatabase();
     await mongoConnection.close();
     await app.close();
   });
 
   afterEach(async () => {
-    // const collections = mongoConnection.collections;
-    // for (const key in collections) {
-    //   const collection = collections[key];
-    //   await collection.deleteMany({});
-    // }
+    const collections = mongoConnection.collections;
+    for (const key in collections) {
+      const collection = collections[key];
+      await collection.deleteMany({});
+    }
   });
 
-  it("get nonce", async () => {
-    //-----create account
+  it("get nonce successfully", async () => {
+    let account1 = await web3.eth.accounts.create();
 
-    let account = await web3.eth.accounts.create();
+    let res = await request(httpServer).get(`/auth/nonce/${account1.address}`);
 
-    let x = await request(httpServer).get(`/auth/nonce/${account.address}`);
-    console.log("xxxxxxxxxxxxx", x.body);
+    //-----check status code
+    expect(res.statusCode).toBe(200);
+
+    //-----check body format
+
+    expect(res.body).toMatchObject({
+      message: expect.any(String),
+      userId: expect.any(String),
+    });
+
+    // let user = mongoConnection.collection("users").find({});
+
+    console.log(
+      "user",
+      await mongoConnection.collections["users"].findOne({
+        _id: res.body.userId,
+      }),
+    );
   });
 });
