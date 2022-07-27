@@ -69,7 +69,7 @@
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { Test, TestingModule } from "@nestjs/testing";
 import { AppModule } from "./../src/app.module";
-import { Connection, connect } from "mongoose";
+import { Connection, connect, Types } from "mongoose";
 import { ConfigModule, ConfigService } from "@nestjs/config";
 import Web3 from "web3";
 import request from "supertest";
@@ -91,7 +91,7 @@ describe("App e2e", () => {
     config = moduleRef.get<ConfigService>(ConfigService);
 
     web3 = new Web3(
-      `https://rinkeby.infura.io/v3/${config.get("INFURA_PROJECT_ID")}`,
+      `https://rinkeby.infura.io/v3/${config.get("INFURA_PROJECT_ID")}`
     );
 
     mongoConnection = (await connect(config.get("MONGO_TEST_CONNECTION")))
@@ -104,7 +104,7 @@ describe("App e2e", () => {
     app.useGlobalPipes(
       new ValidationPipe({
         whitelist: true,
-      }),
+      })
     );
 
     await app.init();
@@ -129,24 +129,32 @@ describe("App e2e", () => {
     let account1 = await web3.eth.accounts.create();
 
     let res = await request(httpServer).get(`/auth/nonce/${account1.address}`);
+    console.log("res = ", res.body.userId);
 
     //-----check status code
-    expect(res.statusCode).toBe(200);
+    // expect(res.statusCode).toBe(200);
 
-    //-----check body format
+    // //-----check body format
 
-    expect(res.body).toMatchObject({
-      message: expect.any(String),
-      userId: expect.any(String),
-    });
+    // expect(res.body).toMatchObject({
+    //   message: expect.any(String),
+    //   userId: expect.any(String),
+    // });
+
+    let x = await mongoConnection.db
+      .collection("users")
+      .findOne({ _id: new Types.ObjectId(res.body.userId) });
+
+    console.log("x = ", x);
 
     // let user = mongoConnection.collection("users").find({});
+    // let x = mongoConnection.db
+    //   .collection("users")
+    //   .find()
+    //   .forEach((it) => {
+    //     console.log("it = ", it);
+    //   });
 
-    console.log(
-      "user",
-      await mongoConnection.collections["users"].findOne({
-        _id: res.body.userId,
-      }),
-    );
+    // console.log("user", await mongoConnection.db["users"].find({}));
   });
 });
