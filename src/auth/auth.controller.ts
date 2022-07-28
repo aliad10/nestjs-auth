@@ -9,7 +9,7 @@ import {
 } from "@nestjs/common";
 import { AuthService } from "./auth.service";
 import { CreateUserDto } from "./../user/dtos";
-import { LoginDto, loginWithWalletDto } from "./dtos";
+import { LoginDto, LoginWithWalletDto } from "./dtos";
 import { AuthGuard } from "@nestjs/passport";
 import { Request } from "express";
 
@@ -56,7 +56,7 @@ export class AuthController {
   @Post("signinWithWallet/:wallet")
   loginWithWallet(
     @Param("wallet") wallet: string,
-    @Body() dto: loginWithWalletDto
+    @Body() dto: LoginWithWalletDto
   ) {
     const signature = dto.signature;
     return this.authService.loginWithWallet(wallet, signature);

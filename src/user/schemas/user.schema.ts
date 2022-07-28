@@ -50,7 +50,13 @@ export type UserDocument = User & Document;
 
 @Schema()
 export class User extends Document {
-  @Prop({ type: String, unique: true, immutable: true })
+  @Prop({
+    type: String,
+    required: false,
+    unique: true,
+    immutable: true,
+    sparse: true,
+  })
   phoneNumber;
 
   @Prop({ type: String, unique: true })

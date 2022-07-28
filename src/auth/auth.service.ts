@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+} from "@nestjs/common";
 import { CreateUserDto } from "./../user/dtos";
 import * as bcrypt from "bcryptjs";
 import * as ESU from "eth-sig-util";
@@ -114,7 +118,9 @@ export class AuthService {
   // }
 
   async getNonce(wallet: string) {
-    if (!checkPublicKey(wallet)) throw new ForbiddenException("invalid wallet");
+    if (!checkPublicKey(wallet))
+      throw new BadRequestException("invalid wallet");
+
     let user = await this.userService.findUserByWallet(wallet);
 
     const nonce = getRandomNonce();
@@ -139,7 +145,7 @@ export class AuthService {
 
   async loginWithWallet(walletAddress: string, signature: string) {
     if (!checkPublicKey(walletAddress))
-      throw new ForbiddenException("invalid wallet");
+      throw new BadRequestException("invalid wallet");
 
     const user = await this.userService.findUserByWallet(walletAddress);
     if (!user) throw new ForbiddenException("user not exist");

@@ -1,6 +1,6 @@
 import { IsString } from "class-validator";
 
-export class loginWithWalletDto {
+export class LoginWithWalletDto {
   @IsString()
   signature: string;
 }
