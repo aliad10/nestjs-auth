@@ -2,6 +2,7 @@ import {
   BadRequestException,
   ForbiddenException,
   Injectable,
+  NotFoundException,
 } from "@nestjs/common";
 import { CreateUserDto } from "./../user/dtos";
 import * as bcrypt from "bcryptjs";
@@ -148,7 +149,7 @@ export class AuthService {
       throw new BadRequestException("invalid wallet");
 
     const user = await this.userService.findUserByWallet(walletAddress);
-    if (!user) throw new ForbiddenException("user not exist");
+    if (!user) throw new NotFoundException("user not exist");
 
     const message = Messages.SIGN_MESSAGE + user.nonce.toString();
     const msg = `0x${Buffer.from(message, "utf8").toString("hex")}`;
@@ -168,6 +169,9 @@ export class AuthService {
       access_token: await this.getAccessToken(user._id, user.walletAddress),
     };
   }
+
+  //correct user sign with invalid nonce
+  // other wallet address provide this signature
 
   async getAccessToken(userId: string, walletAddress: string) {
     const payload = { userId, walletAddress };
