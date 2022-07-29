@@ -317,4 +317,42 @@ describe("App e2e", () => {
       .send({ signature: signatureResult2.signature });
     expect(loginResult8.statusCode).toBe(201);
   });
+
+  it("get my profile", async () => {
+    const account1 = await web3.eth.accounts.create();
+
+    const getNonceResult1 = await request(httpServer).get(
+      `/auth/nonce/${account1.address}`
+    );
+
+    let signResult1 = account1.sign(getNonceResult1.body.message);
+
+    let loginResult1 = await request(httpServer)
+      .post(`/auth/signinWithWallet/${account1.address}`)
+      .send({ signature: signResult1.signature });
+
+    const getMeResult1 = await request(httpServer)
+      .get("/auth/me")
+      .set({ Authorization: "invalid jwt" });
+
+    expect(getMeResult1.statusCode).toBe(401);
+    expect(getMeResult1.body.statusCode).toBe(401);
+    expect(getMeResult1.body.message).toBe("Unauthorized");
+
+    const getMeResult2 = await request(httpServer)
+      .get("/auth/me")
+      .set({ Authorization: loginResult1.body.access_token });
+
+    expect(getMeResult2.statusCode).toBe(401);
+    expect(getMeResult2.body.statusCode).toBe(401);
+    expect(getMeResult2.body.message).toBe("Unauthorized");
+
+    const getMeResult3 = await request(httpServer)
+      .get("/auth/me")
+      .set({ Authorization: "Bearer " + loginResult1.body.access_token });
+
+    expect(getMeResult3.statusCode).toBe(200);
+
+    expect(getMeResult3.body.walletAddress).toBe(account1.address);
+  });
 });

@@ -170,9 +170,6 @@ export class AuthService {
     };
   }
 
-  //correct user sign with invalid nonce
-  // other wallet address provide this signature
-
   async getAccessToken(userId: string, walletAddress: string) {
     const payload = { userId, walletAddress };
 
