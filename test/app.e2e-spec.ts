@@ -183,11 +183,19 @@ describe("App e2e", () => {
 
     let res = await request(httpServer).get(`/auth/nonce/${account.address}`);
 
+    const userBeforeLogin = await mongoConnection.db
+      .collection("users")
+      .findOne({ _id: new Types.ObjectId(res.body.userId) });
+
     let signResult = account.sign(res.body.message);
 
     let loginResult = await request(httpServer)
       .post(`/auth/signinWithWallet/${account.address}`)
       .send({ signature: signResult.signature });
+
+    const userAfterLogin = await mongoConnection.db
+      .collection("users")
+      .findOne({ _id: new Types.ObjectId(res.body.userId) });
 
     expect(loginResult.statusCode).toBe(201);
 
@@ -200,14 +208,22 @@ describe("App e2e", () => {
     expect(decodedAccessToken["walletAddress"]).toBe(account.address);
 
     expect(decodedAccessToken["userId"]).toBe(res.body.userId);
+
+    // after login nonce must be changed
+
+    expect(userAfterLogin.nonce).not.toBe(userBeforeLogin.nonce);
   });
 
-  it.only("fail to signin with wallet", async () => {
-    let account1 = await web3.eth.accounts.create();
+  it("fail to signin with wallet", async () => {
+    const account1 = await web3.eth.accounts.create();
 
-    let account2 = await web3.eth.accounts.create();
+    const account2 = await web3.eth.accounts.create();
 
-    let res = await request(httpServer).get(`/auth/nonce/${account1.address}`);
+    const invalidMessageToSign: string = "invalid message to sign";
+
+    let getNonceResultForAccount1 = await request(httpServer).get(
+      `/auth/nonce/${account1.address}`
+    );
 
     //fail because signature is not string
     let loginResult1 = await request(httpServer)
@@ -238,5 +254,105 @@ describe("App e2e", () => {
     expect(loginResult3.body.statusCode).toBe(400);
 
     expect(loginResult3.body.message).toBe("invalid wallet");
+
+    // not found user
+    let loginResult4 = await request(httpServer)
+      .post(`/auth/signinWithWallet/${account2.address}`)
+      .send({ signature: "string" });
+
+    expect(loginResult4.statusCode).toBe(404);
+
+    expect(loginResult4.body.statusCode).toBe(404);
+
+    expect(loginResult4.body.message).toBe("user not exist");
+
+    // fail because user sign other message
+    let invalidSignatureResult1 = await account1.sign(invalidMessageToSign);
+
+    let loginResult5 = await request(httpServer)
+      .post(`/auth/signinWithWallet/${account1.address}`)
+      .send({ signature: invalidSignatureResult1.signature });
+
+    expect(loginResult5.statusCode).toBe(403);
+
+    expect(loginResult5.body.statusCode).toBe(403);
+
+    expect(loginResult5.body.message).toBe("invalid credentials");
+
+    // other user sign with another user's nonce
+    let getNonceResultForAccount2 = await request(httpServer).get(
+      `/auth/nonce/${account2.address}`
+    );
+
+    let invalidSignatureResult2 = await account2.sign(
+      getNonceResultForAccount1.body.message
+    );
+
+    let loginResult6 = await request(httpServer)
+      .post(`/auth/signinWithWallet/${account2.address}`)
+      .send({ signature: invalidSignatureResult2.signature });
+
+    expect(loginResult6.statusCode).toBe(403);
+
+    expect(loginResult6.body.statusCode).toBe(403);
+
+    expect(loginResult6.body.message).toBe("invalid credentials");
+    //---------------- sign with correct user and every thing work correct
+    const signatureResult1 = await account1.sign(
+      getNonceResultForAccount1.body.message
+    );
+
+    const signatureResult2 = await account2.sign(
+      getNonceResultForAccount2.body.message
+    );
+
+    let loginResult7 = await request(httpServer)
+      .post(`/auth/signinWithWallet/${account1.address}`)
+      .send({ signature: signatureResult1.signature });
+
+    expect(loginResult7.statusCode).toBe(201);
+
+    let loginResult8 = await request(httpServer)
+      .post(`/auth/signinWithWallet/${account2.address}`)
+      .send({ signature: signatureResult2.signature });
+    expect(loginResult8.statusCode).toBe(201);
+  });
+
+  it("get my profile", async () => {
+    const account1 = await web3.eth.accounts.create();
+
+    const getNonceResult1 = await request(httpServer).get(
+      `/auth/nonce/${account1.address}`
+    );
+
+    let signResult1 = account1.sign(getNonceResult1.body.message);
+
+    let loginResult1 = await request(httpServer)
+      .post(`/auth/signinWithWallet/${account1.address}`)
+      .send({ signature: signResult1.signature });
+
+    const getMeResult1 = await request(httpServer)
+      .get("/auth/me")
+      .set({ Authorization: "invalid jwt" });
+
+    expect(getMeResult1.statusCode).toBe(401);
+    expect(getMeResult1.body.statusCode).toBe(401);
+    expect(getMeResult1.body.message).toBe("Unauthorized");
+
+    const getMeResult2 = await request(httpServer)
+      .get("/auth/me")
+      .set({ Authorization: loginResult1.body.access_token });
+
+    expect(getMeResult2.statusCode).toBe(401);
+    expect(getMeResult2.body.statusCode).toBe(401);
+    expect(getMeResult2.body.message).toBe("Unauthorized");
+
+    const getMeResult3 = await request(httpServer)
+      .get("/auth/me")
+      .set({ Authorization: "Bearer " + loginResult1.body.access_token });
+
+    expect(getMeResult3.statusCode).toBe(200);
+
+    expect(getMeResult3.body.walletAddress).toBe(account1.address);
   });
 });
