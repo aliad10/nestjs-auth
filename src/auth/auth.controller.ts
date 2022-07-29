@@ -12,8 +12,9 @@ import { CreateUserDto } from "./../user/dtos";
 import { LoginDto, LoginWithWalletDto } from "./dtos";
 import { AuthGuard } from "@nestjs/passport";
 import { Request } from "express";
+import { authControllerRoute } from "src/common/constants";
 
-@Controller("auth")
+@Controller()
 export class AuthController {
   constructor(private authService: AuthService) {}
 
@@ -48,22 +49,22 @@ export class AuthController {
   //   return this.authService.verify(username, code);
   // }
 
-  @Get("nonce/:wallet")
+  @Get(authControllerRoute.GET_NONCE)
   getNonce(@Param("wallet") wallet: string) {
     return this.authService.getNonce(wallet);
   }
 
-  @Post("signinWithWallet/:wallet")
+  @Post(authControllerRoute.POST_LOGIN_WALLET)
   loginWithWallet(
     @Param("wallet") wallet: string,
-    @Body() dto: LoginWithWalletDto
+    @Body() dto: LoginWithWalletDto,
   ) {
-    const signature = dto.signature;
+    const signature: string = dto.signature;
     return this.authService.loginWithWallet(wallet, signature);
   }
 
   @UseGuards(AuthGuard("jwt"))
-  @Get("/me")
+  @Get(authControllerRoute.GET_AUTH_ME)
   getMe(@Req() req: Request) {
     const user = req.user;
 
