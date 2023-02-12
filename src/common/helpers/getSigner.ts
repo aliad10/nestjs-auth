@@ -14,7 +14,20 @@ export async function getSigner(signature: string, message, selector: Number) {
       { name: "countryCode", type: "uint16" },
     ];
   } else if (selector == 2) {
+    primaryType = "plantTree";
+    primaryTypeObj = [
+      { name: "nonce", type: "uint256" },
+      { name: "treeSpecs", type: "string" },
+      { name: "birthDate", type: "uint64" },
+      { name: "countryCode", type: "uint16" },
+    ];
   } else if (selector == 3) {
+    primaryType = "updateTree";
+    primaryTypeObj = [
+      { name: "nonce", type: "uint256" },
+      { name: "treeId", type: "uint256" },
+      { name: "treeSpecs", type: "string" },
+    ];
   }
 
   const msgParams = JSON.stringify({
