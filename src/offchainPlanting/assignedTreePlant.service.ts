@@ -17,6 +17,22 @@ export class AssignedTreePlantService {
     private userService: UserService
   ) {}
 
+  async updateTree(dto: CreateAssiggnedTreePlantDto) {
+    const signer = await getSigner(
+      dto.signature,
+      {
+        nonce: dto.nonce,
+        treeId: dto.treeId,
+        treeSpecs: dto.treeSpecs,
+        birthDate: dto.birthDate,
+        countryCode: dto.countryCode,
+      },
+      1
+    );
+
+    console.log("signer", signer);
+  }
+
   async create(dto: CreateAssiggnedTreePlantDto) {
     let tree = await getTreeData(dto.treeId);
 
@@ -24,13 +40,17 @@ export class AssignedTreePlantService {
 
     if (!user) return "not-found user";
 
-    const signer = await getSigner(dto.signature, {
-      nonce: user.plantingNonce,
-      treeId: dto.treeId,
-      treeSpecs: dto.treeSpecs,
-      birthDate: dto.birthDate,
-      countryCode: dto.countryCode,
-    });
+    const signer = await getSigner(
+      dto.signature,
+      {
+        nonce: user.plantingNonce,
+        treeId: dto.treeId,
+        treeSpecs: dto.treeSpecs,
+        birthDate: dto.birthDate,
+        countryCode: dto.countryCode,
+      },
+      1
+    );
 
     if (
       ethUtil.toChecksumAddress(signer) !==
