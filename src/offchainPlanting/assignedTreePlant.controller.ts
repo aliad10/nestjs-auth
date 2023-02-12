@@ -14,4 +14,9 @@ export class AssignedTreePlantController {
   Plant(@Body() body) {
     return this.assignedTreePlantService.plant(body);
   }
+
+  @Post("offchainPlanting/update")
+  updateTree(@Body() body) {
+    return this.assignedTreePlantService.updateTree(body);
+  }
 }
