@@ -36,7 +36,7 @@
     "csurf": "^1.11.0",
     "eth-sig-util": "^3.0.1",
     "mongodb-memory-server": "^8.8.0",
-    "mongoose": "^6.4.4",
+    "mongoose": "^6.2.2",
     "pactum": "^3.1.13",
     "passport": "^0.6.0",
     "passport-jwt": "^4.0.0",
@@ -71,7 +71,8 @@
     "ts-loader": "^9.2.3",
     "ts-node": "^10.0.0",
     "tsconfig-paths": "4.0.0",
-    "typescript": "^4.3.5"
+    "typescript": "^4.3.5",
+    "web3": "^1.5.1"
   },
   "jest": {
     "moduleFileExtensions": [

@@ -65,6 +65,9 @@ export class User extends Document {
   @Prop({ type: Number })
   nonce;
 
+  @Prop({ type: Number })
+  plantingNonce;
+
   @Prop({ type: String })
   firstName;
 

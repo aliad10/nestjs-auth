@@ -49,6 +49,11 @@ export class AuthController {
   //   return this.authService.verify(username, code);
   // }
 
+  @Get("auth/x/:wallet")
+  getPlanter(@Param("wallet") wallet: string) {
+    return this.authService.getPlanterData(wallet);
+  }
+
   @Get(authControllerRoute.GET_NONCE)
   getNonce(@Param("wallet") wallet: string) {
     return this.authService.getNonce(wallet);
@@ -57,7 +62,7 @@ export class AuthController {
   @Post(authControllerRoute.POST_LOGIN_WALLET)
   loginWithWallet(
     @Param("wallet") wallet: string,
-    @Body() dto: LoginWithWalletDto,
+    @Body() dto: LoginWithWalletDto
   ) {
     const signature: string = dto.signature;
     return this.authService.loginWithWallet(wallet, signature);

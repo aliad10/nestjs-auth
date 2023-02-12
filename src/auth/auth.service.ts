@@ -11,10 +11,11 @@ import { ConfigService } from "@nestjs/config";
 import { UserService } from "./../user/user.service";
 import { LoginDto } from "./dtos";
 import { JwtService } from "@nestjs/jwt";
-
+import { getPlanterData } from "./../common/helpers";
 import { VerificationRepository } from "./auth.repository";
 import { Messages } from "./../common/constants";
 import { getRandomNonce, checkPublicKey } from "./../common/helpers";
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -95,6 +96,10 @@ export class AuthService {
     return this.userService.findUserById(userId);
   }
 
+  async getPlanterData(planter: string) {
+    return getPlanterData(planter);
+  }
+
   // async logout(userId: string) {
   //   return await this.userService.updateUserById(userId, { hashedRt: null });
   // }
@@ -133,9 +138,12 @@ export class AuthService {
       };
     }
 
+    console.log("11111111111111");
+
     const newUser = await this.userService.create({
       nonce,
       walletAddress: wallet,
+      plantingNonce: 1,
     });
 
     return {

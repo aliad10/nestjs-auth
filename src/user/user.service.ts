@@ -7,6 +7,8 @@ export class UserService {
   constructor(private userRepository: UserRepository) {}
 
   async create(user: CreateUserDto) {
+    console.log("user", user);
+
     return await this.userRepository.create({ ...user });
   }
   async findUser(username: string): Promise<User> {

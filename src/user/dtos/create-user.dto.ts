@@ -24,4 +24,7 @@ export class CreateUserDto {
 
   @IsNumber()
   nonce: number;
+
+  @IsNumber()
+  plantingNonce: number;
 }
