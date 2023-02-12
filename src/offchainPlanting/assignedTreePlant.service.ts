@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { CreateAssiggnedTreePlantDto } from "./dtos";
-import { AssignedTreePlant } from "./schemas";
+import { CreateAssiggnedTreePlantDto, CreateTreePlantDto } from "./dtos";
+import { AssignedTreePlant, TreePlant } from "./schemas";
 import { AssignedTreePlantRepository } from "./assignedTreePlant.repository";
 import {
   getPlanterData,
@@ -9,12 +9,15 @@ import {
   getTreeData,
 } from "src/common/helpers";
 import { UserService } from "./../user/user.service";
+import { TreePlantRepository } from "./treePlant.repository";
 var ethUtil = require("ethereumjs-util");
+
 @Injectable()
 export class AssignedTreePlantService {
   constructor(
     private assignedTreePlantRepository: AssignedTreePlantRepository,
-    private userService: UserService
+    private treePlantRepository: TreePlantRepository,
+    private userService: UserService,
   ) {}
 
   async create(dto: CreateAssiggnedTreePlantDto) {
@@ -78,5 +81,49 @@ export class AssignedTreePlantService {
 
   async getSignedMessagesList(filter) {
     return await this.assignedTreePlantRepository.find(filter);
+  }
+
+  async pendingListCount(filter): Promise<number> {
+    return (
+      (await this.assignedTreePlantRepository.count(filter)) +
+      (await this.treePlantRepository.count(filter))
+    );
+  }
+
+  async plant(dto: CreateTreePlantDto) {
+    let user = await this.userService.findUserByWallet(dto.signer);
+
+    if (!user) return "not-found user";
+
+    const signer = await getSigner(dto.signature, {
+      nonce: user.plantingNonce,
+      treeSpecs: dto.treeSpecs,
+      birthDate: dto.birthDate,
+      countryCode: dto.countryCode,
+    });
+
+    if (
+      ethUtil.toChecksumAddress(signer) !==
+      ethUtil.toChecksumAddress(dto.signer)
+    )
+      return "invalid signer";
+
+    const planterData = await getPlanterData(signer);
+
+    if (planterData.status != 1) return "invalid planter";
+
+    let count: number = await this.pendingListCount({
+      signer: dto.signer,
+      status: 0,
+    });
+
+    if (planterData.plantedCount + count >= planterData.supplyCap)
+      return "supply error";
+
+    await this.userService.updateUserById(user._id, {
+      plantingNonce: user.plantingNonce + 1,
+    });
+
+    await this.treePlantRepository.create({ ...dto });
   }
 }

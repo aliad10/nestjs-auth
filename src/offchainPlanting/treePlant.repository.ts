@@ -10,11 +10,11 @@ import { Model } from "mongoose";
 import { EntityRepository } from "../database/database.repository";
 
 @Injectable()
-export class AssignedTreePlantRepository extends EntityRepository<AssignedTreePlantDocument> {
+export class TreePlantRepository extends EntityRepository<TreePlantDocument> {
   constructor(
-    @InjectModel(AssignedTreePlant.name)
-    assignedTreePlantModel: Model<AssignedTreePlantDocument>,
+    @InjectModel(TreePlant.name)
+    treePlantModel: Model<TreePlantDocument>,
   ) {
-    super(assignedTreePlantModel);
+    super(treePlantModel);
   }
 }
