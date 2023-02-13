@@ -5,9 +5,12 @@ import {
   AssignedTreePlantDocument,
   UpdateTree,
   UpdateTreeDocument,
+  TreePlant,
+  TreePlantDocument,
 } from "./schemas";
 import { Model } from "mongoose";
 import { EntityRepository } from "../database/database.repository";
+
 @Injectable()
 export class AssignedTreePlantRepository extends EntityRepository<AssignedTreePlantDocument> {
   constructor(
