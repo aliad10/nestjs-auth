@@ -1,7 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { CreateAssiggnedTreePlantDto } from "./dtos";
 import { AssignedTreePlant } from "./schemas";
-import { AssignedTreePlantRepository } from "./assignedTreePlant.repository";
+import {
+  AssignedTreePlantRepository,
+  UpdateTreeRepository,
+} from "./assignedTreePlant.repository";
 import {
   getPlanterData,
   getPlanterOrganization,
@@ -13,12 +16,19 @@ var ethUtil = require("ethereumjs-util");
 @Injectable()
 export class AssignedTreePlantService {
   constructor(
+    private updateTreeRepository: UpdateTreeRepository,
     private assignedTreePlantRepository: AssignedTreePlantRepository,
     private userService: UserService
   ) {}
 
   async updateTree(dto: CreateAssiggnedTreePlantDto) {
-    const signer = await getSigner(
+    let tree = await getTreeData(dto.treeId);
+
+    let user = await this.userService.findUserByWallet(dto.signer);
+
+    if (!user) return "not-found user";
+
+    const signer: string = await getSigner(
       dto.signature,
       {
         nonce: dto.nonce,
@@ -31,6 +41,13 @@ export class AssignedTreePlantService {
     );
 
     console.log("signer", signer);
+    if (
+      ethUtil.toChecksumAddress(signer) !==
+      ethUtil.toChecksumAddress(dto.signer)
+    )
+      return "invalid signer";
+
+    if (tree.treeStatus > 3) return "invalid-tree status";
   }
 
   async create(dto: CreateAssiggnedTreePlantDto) {
@@ -62,7 +79,7 @@ export class AssignedTreePlantService {
     console.log("tre", tree);
     let pendingPlants = await this.getSignedMessagesList({
       signer: dto.signer,
-      isExecuted: false,
+      status: 0,
     });
 
     const planterData = await getPlanterData(signer);
